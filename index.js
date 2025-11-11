@@ -1,8 +1,8 @@
 const express = require('express');
 const { MongoClient, ServerApiVersion } = require('mongodb');
-const app=express();
+const app = express();
 const cors = require('cors');
-const port=process.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 
 
 // middleWare
@@ -15,33 +15,58 @@ app.use(express.json())
 const uri = "mongodb+srv://onlineCourseDb:VNhKjgCmycCtlbC7@cluster0.ire4gf9.mongodb.net/?appName=Cluster0";
 
 const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
+    serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+    }
 });
 
 
 
-app.get('/',(req,res)=>{
+app.get('/', (req, res) => {
     res.send('omega learn running')
 })
 
-async function run(){
- try{
-       await client.connect()
-       await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+async function run() {
+    try {
+        await client.connect()
+        await client.db("admin").command({ ping: 1 });
+        console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
- }
- finally{
 
- }
+
+        const db = client.db('onlineCourseDb')
+        const courseCollection = db.collection('courses')
+
+        app.post('/courses', async (req, res) => {
+            const newCourse = req.body
+            const result = await courseCollection.insertOne(newCourse)
+            res.send(result)
+        })
+
+        app.get('/courses', async (req, res) => {
+            const cursor = courseCollection.find()
+            const result = await cursor.toArray()
+            res.send(result)
+        })
+
+        app.get('/popularCourses',async (req,res)=>{
+            const cursor=courseCollection.find().sort({rating:-1}).limit(6)
+            const result=await cursor.toArray()
+            res.send(result)
+        })
+
+
+
+    }
+    finally {
+
+    }
 }
 run().catch(console.dir)
 
 
-app.listen(port,()=>{
+app.listen(port, () => {
     console.log(`This server listening on port ${port}`)
 })
