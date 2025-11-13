@@ -1,5 +1,5 @@
 const express = require('express');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
 require('dotenv').config();
 const cors = require('cors');
@@ -39,6 +39,9 @@ async function run() {
 
         const db = client.db('onlineCourseDb')
         const courseCollection = db.collection('courses')
+        const instructorCollection = db.collection('instructor')
+        const addCourseCollection = db.collection('myCourse')
+        const enrollCourseCollection = db.collection('myEnrollCourse')
 
         app.post('/courses', async (req, res) => {
             const newCourse = req.body
@@ -52,10 +55,52 @@ async function run() {
             res.send(result)
         })
 
-        app.get('/popularCourses',async (req,res)=>{
-            const cursor=courseCollection.find().sort({rating:-1}).limit(6)
-            const result=await cursor.toArray()
+        app.get('/popularCourses', async (req, res) => {
+            const cursor = courseCollection.find().sort({ rating: -1 }).limit(6)
+            const result = await cursor.toArray()
             res.send(result)
+        })
+
+        // instructor apis
+        app.get('/instructors', async (req, res) => {
+            const cursor = instructorCollection.find()
+            const result = await cursor.toArray()
+            res.send(result)
+        })
+
+        // add course apis
+        app.post('/myCourse', async (req, res) => {
+            const newCourse = req.body;
+            const result = await addCourseCollection.insertOne(newCourse)
+            res.send(result)
+        })
+        app.get('/myCourse', async (req, res) => {
+            const cursor = addCourseCollection.find()
+            const result = await cursor.toArray()
+            res.send(result)
+        })
+
+        // my enroll course apis
+        app.post('/enrollCourse', async (req, res) => {
+            const newCourse = req.body;
+            const result = await enrollCourseCollection.insertOne(newCourse)
+            res.send(result)
+        })
+        app.get('/enrollCourse', async (req, res) => {
+            const email = req.query.email;
+            const query={}
+            if (email) {
+                query.userEmail=email
+            }
+            const result = await enrollCourseCollection.find(query).toArray();
+            res.send(result);
+        });
+
+        app.delete('/enrollCourse/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await enrollCourseCollection.deleteOne(query);
+            res.send(result);
         })
 
 
