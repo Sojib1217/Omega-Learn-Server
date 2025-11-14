@@ -31,9 +31,9 @@ app.get('/', (req, res) => {
 
 async function run() {
     try {
-        await client.connect()
-        await client.db("admin").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        // await client.connect()
+        // await client.db("admin").command({ ping: 1 });
+        // console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
 
 
@@ -74,10 +74,40 @@ async function run() {
             const result = await addCourseCollection.insertOne(newCourse)
             res.send(result)
         })
+
         app.get('/myCourse', async (req, res) => {
-            const cursor = addCourseCollection.find()
+            const email = req.query.email;
+
+            let query = {};
+            if (email) {
+                query = { userEmail: email };
+            }
+
+            const result = await addCourseCollection.find(query).toArray();
+            res.send(result);
+        });
+        app.get('/myCourse/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const cursor = addCourseCollection.find(query)
             const result = await cursor.toArray()
             res.send(result)
+        })
+        app.patch('/myCourse/:id', async (req, res) => {
+            const id = req.params.id;
+            const updatedProduct = req.body;
+            const query = { _id: new ObjectId(id) }
+            const update = {
+                $set: updatedProduct
+            }
+            const result = await addCourseCollection.updateOne(query, update)
+            res.send(result)
+        })
+        app.delete('/myCourse/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await addCourseCollection.deleteOne(query);
+            res.send(result);
         })
 
         // my enroll course apis
@@ -88,9 +118,9 @@ async function run() {
         })
         app.get('/enrollCourse', async (req, res) => {
             const email = req.query.email;
-            const query={}
+            const query = {}
             if (email) {
-                query.userEmail=email
+                query.userEmail = email
             }
             const result = await enrollCourseCollection.find(query).toArray();
             res.send(result);
