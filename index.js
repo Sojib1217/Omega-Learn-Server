@@ -10,8 +10,9 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json())
 
-// VNhKjgCmycCtlbC7
-// onlineCourseDb
+const verifyAccessToken=(req,res,next)=>{
+
+}
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ire4gf9.mongodb.net/?appName=Cluster0`;
 
@@ -86,6 +87,8 @@ async function run() {
             const result = await addCourseCollection.find(query).toArray();
             res.send(result);
         });
+
+
         app.get('/myCourse/:id', async (req, res) => {
             const id = req.params.id
             const query = { _id: new ObjectId(id) }
@@ -144,5 +147,5 @@ run().catch(console.dir)
 
 
 app.listen(port, () => {
-    console.log(`This server listening on port ${port}`)
+    // console.log(`This server listening on port ${port}`)
 })
